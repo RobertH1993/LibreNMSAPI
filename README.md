@@ -3,10 +3,10 @@ A Python API client library for (https://www.librenms.org/ "LibreNMS").
 LibreNMS is a fully featured network monitoring system that provides a wealth of features and device support.  
 
 ## Installation
-Add the folder LibreNMSAPI to your project this way it can be used as module  
+Add the folder LibreNMSAPI to your project this way it can be used as module.  
 
 ## Quick start
-To begin import the API and create an instance of the LibreNMSAPI class  
+To begin import the API and create an instance of the LibreNMSAPI class.  
 
 ``` python
 from LibrenmsAPI.LibreNMSAPI import LibreNMSAPI
@@ -36,17 +36,3 @@ specific_device.delete()
 ```
 ## Contributing
 If you want to contribute please fork this project, push your changes and send a pull request.  
-
-
-
-Usage:
-
-from LibrenmsAPI.LibreNMSAPI import LibreNMSAPI
-
-api = LibreNMSAPI("token", "url-without-trailing-slash")
-
-devices = api.devices.all()
-device_by_id = api.devices.get("1")
-device_by_hostname = api.device.get("server.example.com")
-
-all_ports = api.ports.all()
