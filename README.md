@@ -13,8 +13,8 @@ from LibrenmsAPI.LibreNMSAPI import LibreNMSAPI
 
 # Do not use a trailing slasg for the URL
 api = librenmsAPI(
-  token = "token"
-  url= "https://librenms.example.com/api/v0"
+  access_token = "token"
+  base_url= "https://librenms.example.com/api/v0"
 )
 ```
 
@@ -25,7 +25,7 @@ For example:
 
 ``` python
 all_devices = api.devices.all()
-for device in devices:
+for device in all_devices:
   print(device.device_id)
 
 specific_device = api.devices.get("s01.example.com")
