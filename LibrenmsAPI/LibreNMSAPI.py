@@ -115,7 +115,7 @@ class LibreNMSEndpoint:
         },
 
         "alerts": {
-            "alerts": ['GET'],
+            "alerts": ['GET', 'PUT'],
         },
 
         "rules": {
@@ -366,6 +366,39 @@ class LibreNMSEndpoint:
 
         url = self._create_url([self._base_url, self._endpoint_name])
         response = requests.post(
+            url,
+            headers=self._default_headers,
+            json=data
+        )
+
+        if not self._valid_response(response):
+            raise LibreNMSStatusNotOKException("An error occured while fetching endpoints")
+
+        return json.loads(response.text)
+
+    def ack_alert(self, alertid, note):
+        if 'PUT' not in self._valid_methods:
+            raise LibreNMSInvalidEndpointException("{} Endpoint doesnt accept PUT command".format(self._endpoint_name))
+
+        url = self._create_url([self._base_url, self._endpoint_name, str(alertid)])
+        response = requests.put(
+            url,
+            headers=self._default_headers,
+            json={'note': str(note)}
+
+        )
+
+        if not self._valid_response(response):
+            raise LibreNMSStatusNotOKException("An error occured while fetching endpoints")
+
+        return json.loads(response.text)
+
+    def update(self, data):
+        if 'PUT' not in self._valid_methods:
+            raise LibreNMSInvalidEndpointException("{} Endpoint doesnt accept PUT command".format(self._endpoint_name))
+
+        url = self._create_url([self._base_url, self._endpoint_name])
+        response = requests.put(
             url,
             headers=self._default_headers,
             json=data
