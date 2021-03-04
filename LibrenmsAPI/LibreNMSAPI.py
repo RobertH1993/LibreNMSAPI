@@ -235,7 +235,7 @@ class LibreNMSEndpoint:
             return True
 
     def _valid_status_code(self, status_code):
-        if status_code == 200 or status_code == 204:
+        if status_code == 200 or status_code == 201 or status_code == 204:
             return True
 
         return False
