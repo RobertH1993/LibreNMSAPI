@@ -106,7 +106,7 @@ class LibreNMSEndpoint:
         },
 
         "devicegroups": {
-            "devicegroups": ['GET'],
+            "devicegroups": ['GET','POST'],
         },
 
         "portgroups": {
@@ -192,7 +192,7 @@ class LibreNMSEndpoint:
         },
 
         "bills": {
-            "bills": ['GET'],
+            "bills": ['GET','POST'],
             "bills/{int}": ['GET'],
             "bills/{int}/graphs": ['GET'],
             "bills/{int}/graphdata": ['GET'],
