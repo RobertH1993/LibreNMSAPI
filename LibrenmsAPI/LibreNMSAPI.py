@@ -1,7 +1,7 @@
 #!/bin/python
 import requests
 import json
-
+import os
 
 class LibreNMSInvalidendpointException(Exception):
 	def __init__(self, message):
@@ -245,16 +245,16 @@ class LibreNMSendpoint:
 	}
 	}
 
-	def __init__(self, endpoint_name, access_token, base_url, data=None):
+	def __init__(self, endpoint_name, api_access_token, base_apiurl, data=None):
 		self._normalizer = LibreNMSJsonNormalizer()
 		self._endpoint_data = {} if data is None else data
 		self._endpoint_name = endpoint_name
-		self._access_token = access_token
-		self._base_url = base_url
+		self._api_access_token = api_access_token
+		self._base_apiurl = base_apiurl
 		self._default_headers = {
 			"Content-Type": "application/json",
 			"Accept": "application/json",
-			"X-Auth-Token": self._access_token
+			"X-Auth-Token": self._api_access_token
 		}
 		self._valid_methods = self._get_endpoint_request_methods()
 		#TODO check if base url ends with trailing slash
@@ -319,7 +319,7 @@ class LibreNMSendpoint:
 		if 'GET' not in self._valid_methods:
 			raise LibreNMSInvalidendpointException("{} endpoint doesnt accept GET command".format(self._endpoint_name))
 
-		url = self._create_url([self._base_url, self._endpoint_name])
+		url = self._create_url([self._base_apiurl, self._endpoint_name])
 		response = requests.get(
 			url,
 			headers=self._default_headers
@@ -341,8 +341,8 @@ class LibreNMSendpoint:
 			endpoint_objects.append(
 				LibreNMSendpoint(
 					"{}/{}".format(self._endpoint_name, json_object[id_keyname]),
-					self._access_token,
-					self._base_url,
+					self._api_access_token,
+					self._base_apiurl,
 					json_object
 				)
 			)
@@ -353,7 +353,7 @@ class LibreNMSendpoint:
 		if 'GET' not in self._valid_methods:
 			raise LibreNMSInvalidendpointException("{} endpoint doesnt accept GET command".format(self._endpoint_name))
 
-		url = self._create_url([self._base_url, self._endpoint_name, object_name])
+		url = self._create_url([self._base_apiurl, self._endpoint_name, object_name])
 		response = requests.get(
 			url,
 			headers=self._default_headers
@@ -374,8 +374,8 @@ class LibreNMSendpoint:
 		json_object = json_objects[0]
 		return LibreNMSendpoint(
 			"{}/{}".format(self._endpoint_name, object_name),
-			self._access_token,
-			self._base_url,
+			self._api_access_token,
+			self._base_apiurl,
 			data=json_object
 		)
 
@@ -383,8 +383,39 @@ class LibreNMSendpoint:
 		if 'DELETE' not in self._valid_methods:
 			raise LibreNMSInvalidendpointException("{} endpoint doesnt accept DELETE command".format(self._endpoint_name))
 
-		url = self._create_url([self._base_url, self._endpoint_name, object_name])
+		url = self._create_url([self._base_apiurl, self._endpoint_name, object_name])
 		response = requests.delete(
+			url,
+			headers=self._default_headers
+		)
+
+		if not self._valid_response(response):
+			raise LibreNMSStatusNotOKException("An error occurred while fetching endpoints")
+
+		return json.loads(response.text)
+
+	def edit(self, object_name):
+		if 'PUT' not in self._valid_methods:
+			if 'PATCH' in self._valid_methods:
+				return self.update(self,object_name)
+			raise LibreNMSInvalidendpointException("{} endpoint doesnt accept PUT command".format(self._endpoint_name))
+
+		url = self._create_url([self._base_apiurl, self._endpoint_name, object_name])
+		response = requests.put(
+			url,
+			headers=self._default_headers
+		)
+
+		if not self._valid_response(response):
+			raise LibreNMSStatusNotOKException("An error occurred while fetching endpoints")
+
+		return json.loads(response.text)
+	def update(self, object_name):
+		if 'PATCH' not in self._valid_methods:
+			raise LibreNMSInvalidendpointException("{} endpoint doesnt accept PATCH command".format(self._endpoint_name))
+
+		url = self._create_url([self._base_apiurl, self._endpoint_name, object_name])
+		response = requests.patch(
 			url,
 			headers=self._default_headers
 		)
@@ -398,7 +429,7 @@ class LibreNMSendpoint:
 		if 'POST' not in self._valid_methods:
 			raise LibreNMSInvalidendpointException("{} endpoint doesnt accept POST command".format(self._endpoint_name))
 
-		url = self._create_url([self._base_url, self._endpoint_name])
+		url = self._create_url([self._base_apiurl, self._endpoint_name])
 		response = requests.post(
 			url,
 			headers=self._default_headers,
@@ -426,8 +457,8 @@ class LibreNMSendpoint:
 		else:
 			return LibreNMSendpoint(
 				"{}/{}".format(self._endpoint_name, attribute_name),
-				self._access_token,
-				self._base_url
+				self._api_access_token,
+				self._base_apiurl
 			)
 
 	def __repr__(self):
@@ -435,10 +466,15 @@ class LibreNMSendpoint:
 
 
 class LibreNMSAPI:
-	def __init__(self, access_token, base_url):
-		self._access_token = access_token
-		self._base_url = base_url
+	def __init__(self, api_access_token=None, base_apiurl=None):
+		if api_access_token is None and base_apiurl is None:
+			from dotenv import load_dotenv
+			load_dotenv()
+			self._api_access_token = os.environ['LibreNMSAPI_KEY']
+			self._base_apiurl = os.environ['LibreNMSAPI_URL']
+		else:
+			self._api_access_token = api_access_token
+			self._base_apiurl = base_apiurl
 
 	def __getattr__(self, attribute_name):
-		return LibreNMSendpoint(attribute_name, self._access_token, self._base_url)
-
+		return LibreNMSendpoint(attribute_name, self._api_access_token, self._base_apiurl)
